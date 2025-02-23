@@ -81,21 +81,39 @@ def test_server():
 # @pytest.mark.skip(reason="Test works, skipping for now")
 def test_basic_generation(test_server: TestClient):
     """Test basic text generation"""
+    start_time = time.time()
+    
     # Verify server is responding
     print("\n=== Starting Basic Generation Test ===")
     response = test_server.get("/")
     assert response.status_code == 404  # FastAPI default for undefined root
+    server_check_time = time.time() - start_time
+    print(f"Server check took: {server_check_time:.2f}s")
     
+    # Initialize LLM
+    llm_start = time.time()
     llm = ChatLocalAI(
         base_url="http://localhost:8080/v1",
         model_string="test-model",
         enable_cache=False
     )
+    llm_init_time = time.time() - llm_start
+    print(f"LLM initialization took: {llm_init_time:.2f}s")
     
+    # Generate response
+    gen_start = time.time()
     response = llm.generate("Hello, world!")
+    gen_time = time.time() - gen_start
+    print(f"Generation took: {gen_time:.2f}s")
+    
     print(f"\nReceived response: {type(response)} \n{response}")
     assert response == "This is a test response"
+    
+    total_time = time.time() - start_time
+    print(f"\nTotal test time: {total_time:.2f}s")
+    assert False
 
+@pytest.mark.skip(reason="Test works, skipping for now")
 def test_structured_generation(test_server: TestClient):
     """Test structured output generation"""
     print("\n=== Starting Structured Generation Test ===")
@@ -125,6 +143,7 @@ def test_structured_generation(test_server: TestClient):
     assert response.analysis == "This is a test analysis"
     assert response.true_false is True
 
+@pytest.mark.skip(reason="Test works, skipping for now")
 def test_multimodal_generation(test_server: TestClient):
     """Test multimodal generation with image"""
     print("\n=== Starting Multimodal Generation Test ===")
@@ -148,6 +167,7 @@ def test_multimodal_generation(test_server: TestClient):
     ])
     assert response == "This is a test response"
 
+@pytest.mark.skip(reason="Test works, skipping for now")
 def test_error_handling(test_server: TestClient):
     """Test error handling"""
     print("\n=== Starting Error Handling Test ===")

@@ -3,6 +3,7 @@ import os
 import json
 import base64
 import openai
+import time
 
 from typing import List, Union
 from tenacity import stop_after_attempt, wait_random_exponential, retry
@@ -146,6 +147,7 @@ class ChatLocalAI(EngineLM, CachedEngine):
             )
             response = response.choices[0].message.parsed
         else:
+            chat_create_start = time.time()
             response = self.client.chat.completions.create(
                 model=self.model_string,
                 messages=[
@@ -160,6 +162,7 @@ class ChatLocalAI(EngineLM, CachedEngine):
                 top_p=top_p,
             )
             response = response.choices[0].message.content
+            print(f"Chat create took: {time.time() - chat_create_start:.2f}s")
 
         if self.enable_cache:
             self._save_cache(cache_key, response)

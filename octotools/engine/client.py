@@ -1,3 +1,9 @@
+"""
+This is a modified version of the OpenAI client that is used to interact with the OpenAI API
+and is largely a copy-paste of openai._client.py
+"""
+
+
 from __future__ import annotations
 
 import os
@@ -5,6 +11,7 @@ from typing import Any, Union, Mapping
 from typing_extensions import Self, override
 
 import httpx
+import time
 
 from openai import _exceptions
 from openai._qs import Querystring
@@ -19,7 +26,7 @@ from openai._utils import (
     is_mapping,
 )
 from openai._version import __version__
-from openai.resources import files, images, models, batches, embeddings, completions, moderations
+from openai.resources import files, images, models, batches, embeddings, moderations
 from openai._streaming import Stream as Stream, AsyncStream as AsyncStream
 from openai._exceptions import OpenAIError, APIStatusError
 from openai._base_client import (
@@ -31,9 +38,10 @@ from openai.resources.chat import chat
 from openai.resources.audio import audio
 from openai.resources.uploads import uploads
 from openai.resources.fine_tuning import fine_tuning
+from openai.resources.completions import Completions, CompletionsWithRawResponse, CompletionsWithStreamingResponse
 
 class LocalAPIClient(SyncAPIClient):
-    completions: completions.Completions
+    completions: Completions
     chat: chat.Chat
     embeddings: embeddings.Embeddings
     files: files.Files
@@ -94,6 +102,12 @@ class LocalAPIClient(SyncAPIClient):
         - `organization` from `OPENAI_ORG_ID`
         - `project` from `OPENAI_PROJECT_ID`
         """
+        start_total = time.time()
+        
+        print("Starting client initialization...")
+        
+        # Time API key setup
+        t1 = time.time()
         if api_key is None:
             api_key = os.environ.get("OPENAI_API_KEY")
         if api_key is None:
@@ -101,22 +115,28 @@ class LocalAPIClient(SyncAPIClient):
                 "The api_key client option must be set either by passing api_key to the client or by setting the OPENAI_API_KEY environment variable"
             )
         self.api_key = api_key
+        print(f"API key setup took: {time.time() - t1:.3f}s")
 
+        # Time organization/project setup
+        t2 = time.time()
         if organization is None:
             organization = os.environ.get("OPENAI_ORG_ID")
         self.organization = organization
-
         if project is None:
             project = os.environ.get("OPENAI_PROJECT_ID")
         self.project = project
+        print(f"Org/Project setup took: {time.time() - t2:.3f}s")
 
-        self.websocket_base_url = websocket_base_url
-
+        # Time base URL setup
+        t3 = time.time()
         if base_url is None:
             base_url = os.environ.get("OPENAI_BASE_URL")
         if base_url is None:
             base_url = f"https://api.openai.com/v1"
+        print(f"Base URL setup took: {time.time() - t3:.3f}s")
 
+        # Time parent class initialization
+        t4 = time.time()
         super().__init__(
             version=__version__,
             base_url=base_url,
@@ -127,10 +147,11 @@ class LocalAPIClient(SyncAPIClient):
             custom_query=default_query,
             _strict_response_validation=_strict_response_validation,
         )
+        print(f"Parent class initialization took: {time.time() - t4:.3f}s")
 
-        self._default_stream_cls = Stream
-
-        self.completions = completions.Completions(self)
+        # Time resource initialization
+        t5 = time.time()
+        self.completions = Completions(self)
         self.chat = chat.Chat(self)
         self.embeddings = embeddings.Embeddings(self)
         self.files = files.Files(self)
@@ -144,6 +165,11 @@ class LocalAPIClient(SyncAPIClient):
         self.uploads = uploads.Uploads(self)
         self.with_raw_response = OpenAIWithRawResponse(self)
         self.with_streaming_response = OpenAIWithStreamedResponse(self)
+        print(f"Resource initialization took: {time.time() - t5:.3f}s")
+
+        print(f"Total initialization took: {time.time() - start_total:.3f}s")
+
+        self._default_stream_cls = Stream
 
     @property
     @override
@@ -261,7 +287,7 @@ class LocalAPIClient(SyncAPIClient):
 
 class OpenAIWithRawResponse:
     def __init__(self, client: LocalAPIClient) -> None:
-        self.completions = completions.CompletionsWithRawResponse(client.completions)
+        self.completions = CompletionsWithRawResponse(client.completions)
         self.chat = chat.ChatWithRawResponse(client.chat)
         self.embeddings = embeddings.EmbeddingsWithRawResponse(client.embeddings)
         self.files = files.FilesWithRawResponse(client.files)
@@ -277,7 +303,7 @@ class OpenAIWithRawResponse:
 
 class OpenAIWithStreamedResponse:
     def __init__(self, client: LocalAPIClient) -> None:
-        self.completions = completions.CompletionsWithStreamingResponse(client.completions)
+        self.completions = CompletionsWithStreamingResponse(client.completions)
         self.chat = chat.ChatWithStreamingResponse(client.chat)
         self.embeddings = embeddings.EmbeddingsWithStreamingResponse(client.embeddings)
         self.files = files.FilesWithStreamingResponse(client.files)
