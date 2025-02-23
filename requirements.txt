@@ -10,3 +10,7 @@ sympy==1.13.1
 tenacity==9.0.0
 transformers==4.49.0
 wikipedia==1.4.0
+
+# numpy==2.1.0
+# sympy==1.13.2
+# tqdm==4.66.5
