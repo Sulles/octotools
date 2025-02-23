@@ -1,0 +1,3 @@
+[submodule "submod/openai"]
+	path = submod/openai
+	url = https://github.com/openai/openai-python
