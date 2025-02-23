@@ -6,33 +6,33 @@ from typing_extensions import Self, override
 
 import httpx
 
-from ...submod.openai.src.openai import _exceptions
-from ...submod.openai.src.openai._qs import Querystring
-from ...submod.openai.src.openai._types import (
+from openai import _exceptions
+from openai._qs import Querystring
+from openai._types import (
     NOT_GIVEN,
     Omit,
     Timeout,
     NotGiven,
 )
-from ...submod.openai.src.openai._utils import (
+from openai._utils import (
     is_given,
     is_mapping,
 )
-from ...submod.openai.src.openai._version import __version__
-from ...submod.openai.src.openai.resources import files, images, models, batches, embeddings, completions, moderations
-from ...submod.openai.src.openai._streaming import Stream as Stream, AsyncStream as AsyncStream
-from ...submod.openai.src.openai._exceptions import OpenAIError, APIStatusError
-from ...submod.openai.src.openai._base_client import (
+from openai._version import __version__
+from openai.resources import files, images, models, batches, embeddings, completions, moderations
+from openai._streaming import Stream as Stream, AsyncStream as AsyncStream
+from openai._exceptions import OpenAIError, APIStatusError
+from openai._base_client import (
     DEFAULT_MAX_RETRIES,
     SyncAPIClient,
 )
-from ...submod.openai.src.openai.resources.beta import beta
-from ...submod.openai.src.openai.resources.chat import chat
-from ...submod.openai.src.openai.resources.audio import audio
-from ...submod.openai.src.openai.resources.uploads import uploads
-from ...submod.openai.src.openai.resources.fine_tuning import fine_tuning
+from openai.resources.beta import beta
+from openai.resources.chat import chat
+from openai.resources.audio import audio
+from openai.resources.uploads import uploads
+from openai.resources.fine_tuning import fine_tuning
 
-class OpenAI(SyncAPIClient):
+class LocalAPIClient(SyncAPIClient):
     completions: completions.Completions
     chat: chat.Chat
     embeddings: embeddings.Embeddings
@@ -260,7 +260,7 @@ class OpenAI(SyncAPIClient):
 
 
 class OpenAIWithRawResponse:
-    def __init__(self, client: OpenAI) -> None:
+    def __init__(self, client: LocalAPIClient) -> None:
         self.completions = completions.CompletionsWithRawResponse(client.completions)
         self.chat = chat.ChatWithRawResponse(client.chat)
         self.embeddings = embeddings.EmbeddingsWithRawResponse(client.embeddings)
@@ -276,7 +276,7 @@ class OpenAIWithRawResponse:
 
 
 class OpenAIWithStreamedResponse:
-    def __init__(self, client: OpenAI) -> None:
+    def __init__(self, client: LocalAPIClient) -> None:
         self.completions = completions.CompletionsWithStreamingResponse(client.completions)
         self.chat = chat.ChatWithStreamingResponse(client.chat)
         self.embeddings = embeddings.EmbeddingsWithStreamingResponse(client.embeddings)
